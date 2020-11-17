@@ -190,5 +190,5 @@ if operation == 0:
 elif operation == 1:
     print(f'\n开始挂载，此次映射的保险库是“{vault.name}”，其实际存储路径为 {vault.remote}\n')
     print(f'你可以通过在文件浏览器访问 {vault.mountPath} 来查看你的保险库\n')
-    subprocess.run(f'rclone mount "{vault.innerName}:/" "{vault.mountPath}" --vfs-cache-mode full --dir-cache-time 60s')
+    subprocess.run(f'rclone mount "{vault.innerName}:/" "{vault.mountPath}" --dir-cache-time 60s')
 
