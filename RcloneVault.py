@@ -40,7 +40,7 @@
 # rclone 的静态密钥来自 https://github.com/rclone/rclone/blob/master/fs/config/obscure/obscure.go
 
 
-import os, sys, subprocess, stdiomask, string
+import os, sys, subprocess, stdiomask, string, time
 import base64
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -58,23 +58,7 @@ class RcloneCryptRemote:
         self.serverPass = serverPass    # 当映射到端口服务时，服务的登陆密码 
         self.mountPath = mountPath    # 当挂载到硬盘时，挂载的路径。不能与已有路径相同，否则会冲突。
 
-def encrypt(passwd):
-    # 用于将明文密码 obscure 成 rclone 的格式
-    key = b'\x9c\x93\x5b\x48\x73\x0a\x55\x4d\x6b\xfd\x7c\x63\xc8\x86\xa9\x2b\xd3\x90\x19\x8e\xb8\x12\x8a\xfb\xf4\xde\x16\x2b\x8b\x95\xf6\x38'
-    seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+=-"
-    iv = b''
-    for i in range(16):
-        iv += random.choice(seed).encode() # 得到随机 iv 编码成 bytes 的形式
-    counter = Counter.new(128, initial_value=bytes_to_long(iv)) # 得到计数器
-    cryptor = AES.new(key=key, mode=AES.MODE_CTR, counter=counter) # 得到加密器
-    encrypData = cryptor.decrypt(passwd.encode()) # 加密密码
-    result = iv + encrypData
-    b64result = base64.b64encode(result).decode(encoding='utf-8').rstrip('=')  # base64 编码后用 utf-8 解码，再去掉后面的 ==
-    return b64result
-
 CryptVultList = [] # 设一个列表用于存放所有保险库
-
-
 
 
 # =====================================用户编辑区入口=====================================================
@@ -110,7 +94,21 @@ CryptVultList.append(RcloneCryptRemote(vaultName, vaultPath, vaultServerType, va
 
 
 
-
+def encrypt(passwd):
+    # 用于将明文密码 obscure 成 rclone 的格式
+    key = b'\x9c\x93\x5b\x48\x73\x0a\x55\x4d\x6b\xfd\x7c\x63\xc8\x86\xa9\x2b\xd3\x90\x19\x8e\xb8\x12\x8a\xfb\xf4\xde\x16\x2b\x8b\x95\xf6\x38'
+    seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+=-"
+    iv = b''
+    for i in range(16):
+        iv += random.choice(seed).encode() # 得到随机 iv 编码成 bytes 的形式
+    counter = Counter.new(128, initial_value=bytes_to_long(iv)) # 得到计数器
+    cryptor = AES.new(key=key, mode=AES.MODE_CTR, counter=counter) # 得到加密器
+    encrypData = cryptor.decrypt(passwd.encode()) # 加密密码
+    result = iv + encrypData
+    print(f'base64b: {base64.b64encode(result)}')
+    print(f'base64 utf-8: {base64.b64encode(result).decode(encoding="utf-8")}')
+    b64result = base64.b64encode(result).decode(encoding='utf-8').rstrip('=').replace("+", "-").replace("/", "_")  # base64 编码后用 utf-8 解码，再去掉后面的 ==
+    return b64result
 
 
 print('\n\n\n=====================第一步===========================\n')
@@ -167,12 +165,12 @@ passwd = stdiomask.getpass('现在请输入保险库密码：')
 typeVar, typeValue = f'RCLONE_CONFIG_{vault.innerName}_TYPE', 'crypt'
 remoteVar, remoteValue = f'RCLONE_CONFIG_{vault.innerName}_REMOTE', vault.remote
 passVar, passValue = f'RCLONE_CONFIG_{vault.innerName}_PASSWORD', encrypt(passwd)
-passLen = len(passValue)
-os.putenv(typeVar, typeValue)
-os.putenv(remoteVar, remoteValue)
-os.putenv(passVar, passValue)
+os.environ[typeVar]=typeValue
+os.environ[remoteVar]=remoteValue
+os.environ[passVar]=passValue
 
 print('\n\n\n======================第四步==========================\n')
+
 
 if operation == 0:
     print(f'开始映射，此次映射的保险库是“{vault.name}”，其实际存储路径为 {vault.remote}\n')
@@ -191,4 +189,3 @@ elif operation == 1:
     print(f'\n开始挂载，此次映射的保险库是“{vault.name}”，其实际存储路径为 {vault.remote}\n')
     print(f'你可以通过在文件浏览器访问 {vault.mountPath} 来查看你的保险库\n')
     subprocess.run(f'rclone mount "{vault.innerName}:/" "{vault.mountPath}" --vfs-cache-mode full --dir-cache-time 60s')
-
