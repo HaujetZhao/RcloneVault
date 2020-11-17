@@ -93,10 +93,9 @@ CryptVultList.append(RcloneCryptRemote(vaultName, vaultPath, vaultServerType, va
 
 
 
-
+key = b'\x9c\x93\x5b\x48\x73\x0a\x55\x4d\x6b\xfd\x7c\x63\xc8\x86\xa9\x2b\xd3\x90\x19\x8e\xb8\x12\x8a\xfb\xf4\xde\x16\x2b\x8b\x95\xf6\x38'
 def encrypt(passwd):
     # 用于将明文密码 obscure 成 rclone 的格式
-    key = b'\x9c\x93\x5b\x48\x73\x0a\x55\x4d\x6b\xfd\x7c\x63\xc8\x86\xa9\x2b\xd3\x90\x19\x8e\xb8\x12\x8a\xfb\xf4\xde\x16\x2b\x8b\x95\xf6\x38'
     seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+=-"
     iv = b''
     for i in range(16):
@@ -105,11 +104,20 @@ def encrypt(passwd):
     cryptor = AES.new(key=key, mode=AES.MODE_CTR, counter=counter) # 得到加密器
     encrypData = cryptor.decrypt(passwd.encode()) # 加密密码
     result = iv + encrypData
-    print(f'base64b: {base64.b64encode(result)}')
-    print(f'base64 utf-8: {base64.b64encode(result).decode(encoding="utf-8")}')
-    b64result = base64.b64encode(result).decode(encoding='utf-8').rstrip('=').replace("+", "-").replace("/", "_")  # base64 编码后用 utf-8 解码，再去掉后面的 ==
+    b64result = base64.b64encode(result).decode(encoding='utf-8').rstrip('=')  # base64 编码后用 utf-8 解码，再去掉后面的 ==
+    if '+' in b64result or '/' in b64result: # rclone 的 base64 字符串中不能出现 + 和 /，所以要使用递归重新加密
+        b64result = encrypt(passwd)
     return b64result
-
+def decrypt(data):
+    data += '=='
+    data_origin = base64.b64decode(data) # 进行 base64 解码
+    iv = data_origin[:AES.block_size] # 得到 initial_value
+    passwd = data_origin[AES.block_size:] # 得到加密的数据部分
+    counter = Counter.new(128, initial_value=bytes_to_long(iv)) # 得到计数器
+    cryptor = AES.new(key=key, mode=AES.MODE_CTR, counter=counter) # 得到加密器
+    # decrypData = cryptor.decrypt(passwd).decode(encoding='utf-8') # 解密加密部分
+    decrypData = cryptor.decrypt(passwd)
+    return decrypData
 
 print('\n\n\n=====================第一步===========================\n')
 print('目前有以下保险库：\n')
