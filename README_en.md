@@ -2,13 +2,13 @@
 
 # Purpose
 
-Crypt-type remote of rclone can be used as users File Vault, and this script is ment to make managing, editing, opening and closing File Vaults easier. 
+Crypt-type remote of [rclone](https://rclone.org/) can be used as users File Vault, and this script is meant to make managing, editing, opening and closing File Vaults easier. 
 
 # Introduce: 
 
-Rclone is a open source storage manage tool, it supports multi kinds of local and cloud storage. 
+[Rclone](https://rclone.org/) is a open source storage manage tool, it supports multi kinds of local and cloud storage. 
 
-Rclone supports a storage type called "Crypt", it's actually adding a crypt layer on top of a normal storage layer. 
+[Rclone](https://rclone.org/) supports a storage type called "[Crypt](https://rclone.org/crypt/)", it's actually adding a crypt layer on top of a normal storage layer. 
 
 By using this crypt layer, files will be crypted by AES algorism using 256 bit key before it written to the normal storage. 
 
@@ -35,12 +35,12 @@ When served, other devices like your phone will be able to access you PC vault o
 
 Advantages：
 
-* Rclone is written in go, opensource, hight efficiency performance, cross platform. No worry about safety and compatibility. 
+* Rclone is written in go, opensource, high efficiency performance, cross platform. No worry about safety and compatibility. 
 
 Dependencies：
 * Rclone installed
 * Mount function requires FUSE, Windows users need first install [winfsp](https://github.com/billziss-gh/winfsp/releases) 
-* Before you run this script, please install python dependencies：pip install stdiomask pycryptodome
+* Before you run this script, please install python dependencies：`pip install stdiomask pycryptodome` 
 
 Usage：
 
