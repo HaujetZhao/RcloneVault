@@ -1,4 +1,6 @@
-[中文](./README.md)   [English](./README_en.md) 
+[中文](./README.md)　|　[English](./README_en.md) 
+
+[Gitee](https://gitee.com/haujet/RcloneVault)　|　[Github](https://github.com/HaujetZhao/RcloneVault) 
 
 # Purpose
 
