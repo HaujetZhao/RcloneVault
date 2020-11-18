@@ -1,3 +1,5 @@
+[中文](./README.md)   [English](./README_en.md) 
+
 # 用途
 
 rclone 的 crypt 存储类型，可以作为用户透明加密文件的保险库，本脚本可以方便管理 rclone crypt 保险库，方便地打开和关闭保险库
