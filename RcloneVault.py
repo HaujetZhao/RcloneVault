@@ -50,7 +50,7 @@ import random
 class RcloneCryptRemote:
     def __init__(self, name='', remote='', serverType='webdav', serverAddr=':8080', serverUser='', serverPass='', mountPath='Z:'):
         self.name = name              # 一个好认的保险库名字
-        self.innerName = ''.join(random.sample(string.ascii_letters + string.digits, 6))    # 保险库内部的名字，用于 rclone 识别，不能重复，只能使用英文字母、数字和下划线
+        self.innerName = ''.join(random.sample(string.ascii_uppercase + string.digits, 6))    # 保险库内部的名字，用于 rclone 识别，不能重复，只能使用英文字母、数字和下划线
         self.remote = remote          # 保险库的路径
         self.serverType = serverType    # 当映射到端口服务时，服务的类型，可填：webdav、ftp、sftp、http
         self.serverAddr = serverAddr    # 当映射到端口服务时，服务的访问地址
@@ -189,11 +189,12 @@ if operation == 0:
     elif vault.serverType == 'sftp':
         print(f'你可以通过在支持 sftp 协议的远程文件管理器访问 {vault.serverAddr.replace("0.0.0.0", "127.0.0.1")} 来查看你的保险库\n')
     if vault.serverUser == '':
-        subprocess.run(f'rclone serve {vault.serverType} "{vault.innerName}:/" --addr {vault.serverAddr}')
+        # subprocess.run(f'rclone serve {vault.serverType} "{vault.innerName}:/" --addr {vault.serverAddr}')
+        subprocess.run(['rclone', 'serve', f'{vault.serverType}', f'{vault.innerName}:/', '--addr', f'{vault.serverAddr}'])
     else:
         print(f'访问用户名为：{vault.serverUser}，密码为：{vault.serverPass}\n')
-        subprocess.run(f'rclone serve {vault.serverType} "{vault.innerName}:/" --addr {vault.serverAddr} --user {vault.serverUser} --pass {vault.serverPass}')
+        subprocess.run(['rclone', 'serve', f'{vault.serverType}', f'{vault.innerName}:/', '--addr', f'{vault.serverAddr}', '--user', f'{vault.serverUser}', '--pass', f'{vault.serverPass}'])
 elif operation == 1:
     print(f'\n开始挂载，此次映射的保险库是“{vault.name}”，其实际存储路径为 {vault.remote}\n')
     print(f'你可以通过在文件浏览器访问 {vault.mountPath} 来查看你的保险库\n')
-    subprocess.run(f'rclone mount "{vault.innerName}:/" "{vault.mountPath}" --vfs-cache-mode full --dir-cache-time 60s')
+    subprocess.run(['rclone', 'mount', f'{vault.innerName}:/', f'{vault.mountPath}', '--vfs-cache-mode', 'full', '--dir-cache-time', '60s'])
